@@ -193,10 +193,4 @@ int sg_sniff()
 	return 0;
 }
 
-/*int main(void)
-{
-	if(sg_init()) return 1;
-	sg_sniff();
-}*/
-
 

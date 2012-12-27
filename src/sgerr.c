@@ -9,7 +9,7 @@ void sg_err(wchar_t *fmt, ...)
 	wchar_t *buf = malloc((sizeof(wchar_t) * wcslen(fmt))
 			      + (sizeof(wchar_t) * 8));
 	
-	wcscat(buf, L"ERROR:");
+	wcscpy(buf, L"ERROR:");
 	wcscat(buf, fmt);
 	wcscat(buf, L"\n");
 	
