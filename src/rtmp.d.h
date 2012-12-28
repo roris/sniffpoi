@@ -3,13 +3,8 @@
 
 #include <stdint.h>
 
-#ifdef DEBUG_BUILD
-#include <wchar.h>
-#endif
-
 #include "amf.h"
 
-/* struct defs */
 typedef struct
 {
 	uint8_t cid: 6;
@@ -44,6 +39,4 @@ typedef struct
 {
 	uint8_t ts_delta[3];
 } cmsg_type2;
-/*  \struct defs */
-
 #endif
