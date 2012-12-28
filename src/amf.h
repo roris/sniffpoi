@@ -1,6 +1,8 @@
 #ifndef AMF_H
 #define AMF_H
 
-int proc_amft(const uint8_t , int);
+#include "amf.d.h"
+
+int proc_amft(const uint8_t *, int);
 
 #endif
