@@ -1,21 +1,19 @@
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <wchar.h>
+#include <string.h>
 
-void sg_err(wchar_t *fmt, ...)
+void sg_err(const char* fmt, ...)
 {
 	va_list ap;
-	wchar_t *buf = malloc((sizeof(wchar_t) * wcslen(fmt))
-			      + (sizeof(wchar_t) * 8));
-	
-	wcscpy(buf, L"ERROR:");
-	wcscat(buf, fmt);
-	wcscat(buf, L"\n");
-	
+	char *buf = malloc(strlen(fmt) + 8);
+
+	strcpy(buf, "ERROR: ");
+	strcat(buf, fmt);
+
 	va_start(ap, fmt);
-	vfwprintf(stderr, buf, ap);
+	vfprintf(stderr, buf, ap);
 	va_end(ap);
-	
+
 	free(buf);
 }
