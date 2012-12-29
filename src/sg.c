@@ -18,6 +18,7 @@ static pcap_t *handle;
 static struct pcap_pkthdr *pcap_hdr;
 static u_char *pkt_data;
 
+#include "sgerr.h"
 #include "sgf.h"
 #include "sgnet.h"
 
@@ -53,7 +54,7 @@ int sg_init(void)
 
 	if(pcap_findalldevs(&devs, errbuf))
 	{
-		fprintf(stderr, "Failed to retrieve the device list: %s\n", errbuf);
+		sg_err("Failed to retrieve the device list: %s\n", errbuf);
 		return -1;
 	}
 	int i = 0, ndev;
@@ -65,7 +66,7 @@ int sg_init(void)
 	}
 	if(!i)
 	{
-		fprintf(stderr, "No devices found!\n");
+		sg_err("No devices found!\n");
 		return -1;
 	}
 	printf("Enter the interface number: ");
@@ -73,17 +74,17 @@ int sg_init(void)
 
 	if(ndev < 0 || ndev > i)
 	{
-		fprintf(stderr, "Out of range.\n");
+		sg_err("Out of range.\n");
 		pcap_freealldevs(devs);
 		return -1;
 	}
 
-	for(dev= devs, i=0; i<ndev-1;dev=dev->next, i++);
+	for(dev = devs, i = 0; i < ndev - 1; dev = dev->next, i++);
 
 	if((handle = pcap_open_live(dev->name, SG_BUFSZ, 1, SG_TIMEOUT, errbuf
 				   )) == NULL)
 	{
-		fprintf(stderr, "Couldn't open device %s: %s\n", dev->name, errbuf);
+		sg_err("Couldn't open device %s: %s\n", dev->name, errbuf);
 		pcap_freealldevs(devs);
 		return -2;
 	}
@@ -99,16 +100,15 @@ int sg_init(void)
 			"src 111.102.245.226",
 			0, 0))
 	{
-		fprintf(stderr, "Couldn't parse filter: %s",
-			pcap_geterr(handle));
+		sg_err("Couldn't parse filter: %s", pcap_geterr(handle));
 		return -2;
 	}
 	sgf.comp = 1;
 
 	if(pcap_setfilter(handle, &bpfp))
 	{
-		fprintf(stderr, "Couldn't install filter: %s",
-			pcap_geterr(handle));
+		sg_err("Couldn't install filter: %s",
+		       pcap_geterr(handle));
 		return -3;
 	}
 	return 0;
@@ -119,7 +119,7 @@ int sg_sniff(void)
 	u_int res;
 	sgf.lctl = 1;
 	while((res = pcap_next_ex(handle, &pcap_hdr, &pkt_data
-		)) >= 0 && sgf.lctl)
+				 )) >= 0 && sgf.lctl)
 	{
 		if(!res) continue;
 #ifdef DEBUG_BUILD
@@ -129,7 +129,7 @@ int sg_sniff(void)
 	}
 	if(res == -1)
 	{
-		fprintf(stderr, "Error reading packet: %s\n", pcap_geterr(handle));
+		sg_err("Error reading packet: %s\n", pcap_geterr(handle));
 		return res;
 	}
 	return 0;
