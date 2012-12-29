@@ -1,65 +1,61 @@
-#include <stdint.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
 #include "amf.d.h"
+#include "sgret.h"
 
-/* get the lenth from an amf_type, data[0] must belong to length */
-static int amf_getl(const uint8_t *data)
+static uint16 get_len(const u_char *data)
 {
-	uint16_t _l = (uint16_t)(data[0]) << 8;
-	_l |= (uint16_t) data[1];
-	return _l;
+	uint16 l = data[0] << 8;
+	l |= data[1];
+	printf("get_len: %x\n", l);
+	return l;
 }
 
-/* create a new string from src, and copy n elements*/
-static uint8_t *amfstrcpy(const uint8_t *src, int n)
+static u_char *get_str(const u_char *src, int n)
 {
-	uint8_t *buf = malloc(n + 1);
-	strncpy((char *)buf, (const char *)src, n);
+	u_char *buf = malloc(n + 1);
+	strncpy((char *)buf, (char *)src, n);
 	buf[n] = 0;
-#ifdef DEBUG_BUILD
-	wprintf(L"cpy:%s\n", buf);
-#endif
+	printf("get_str(%u):%s\n", n, buf);
 	return buf;
 }
 
-static amf_name *get_amfname(const uint8_t *data)
+static amf_name *new_amf_name(const u_char *data)
 {
 	amf_name *buf = malloc(sizeof(amf_name));
-	buf->len = amf_getl((const uint8_t *)data);
-#ifdef DEBUG_BUILD
-	wprintf(L"name.l:%x\n", buf->len);
-#endif
-	buf->txt = amfstrcpy((data + 2), buf->len);
+	buf->l = get_len(data);
+	buf->txt = get_str(data + 2, buf->l);
+	printf("new_amf_name(): %u %s\n", buf->l, buf->txt);
 	return buf;
 }
-static int proc_msg(const uint8_t *data, uint8_t *id, int size)
+
+static int proc_msg(const u_char *data, u_char *id, int size)
 {
-	amf_str *msg = malloc(sizeof(amf_str));
-	msg->len = amf_getl((data + 1));
-	msg->txt = amfstrcpy((data + 3), msg->len);
-#if defined DEBUG_BUILD || defined PRINT_MSG_ONLY
-	wprintf(L"proc'd msg: %s %x\n", msg->txt, msg->len);
-#endif
-	free(msg->txt);
-	free(msg);
+	amf_str *buf = malloc(sizeof(amf_str));
+	buf->val.l = get_len(data + 1);
+	/* TODO:Bounds check, if string doesn't fit in size, make size the
+	 * current length, set wait flag and then cache the string.
+	 */
+	buf->val.txt = get_str(data + 3, buf->val.l);
+	printf("proc_msg: (%s): %s\n", id, buf->val.txt);
+	free(buf->val.txt);
+	free(buf);
 	return MSG_PROCD;
 }
 
-int proc_amft(const uint8_t *data, int size)
+int proc_amf_so(const u_char *data, int size, int chunklength)
 {
-	/* get the id offset */
-	uint16_t idoff = amf_getl(data) + 2;
-	/* get the id */
-	amf_name *id = get_amfname(data + idoff + 17);
-
+	printf("proc_amf_so()\n");
+	uint shareloc = get_len(data) + 2;
+	amf_name *id = new_amf_name(data + shareloc + 17);
+	int ret;
 	if(id->txt[0] == 'd')
-	{
-		int _t  = proc_msg((const uint8_t *)(data + idoff + 17 + id->len + 2), ((id)->txt + 1), 0);
-		free(id->txt);
-		free(id);
-		return _t;
-	}
-	return -1;
+		ret = proc_msg((const u_char *)(data + shareloc + 17 + id->l + 2),
+			       (id->txt + 1), size);
+	else ret = NOT_MSG;
+	free(id->txt);
+	free(id);
+	return ret;
 }

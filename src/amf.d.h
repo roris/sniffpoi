@@ -1,29 +1,14 @@
 #ifndef AMF_D_H
 #define AMF_D_H
-
-#include <stdint.h>
-
+#include "sgint.h"
 typedef struct
 {
-	uint16_t len;
-	uint8_t *txt;
+	uint16 l;
+	u_char* txt;
 } amf_name;
-
 typedef struct
 {
-	uint8_t type;
-	uint16_t len;
-	uint8_t *txt;
+	uint8 tid;
+	amf_name val;
 } amf_str;
-
-typedef struct
-{
-	uint8_t type;
-	uint64_t val;
-} amf_num;
-
-typedef struct
-{
-	uint8_t type;
-} amf_nul;
 #endif
