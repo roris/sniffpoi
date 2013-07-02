@@ -1,4 +1,4 @@
-#define _BSD_SOURCE
+#define _BSD_SOURCE 1
 
 #include <math.h>
 #include <signal.h>
@@ -10,7 +10,7 @@
 
 #include <pcap.h>
 
-#if defined(WIN_32) || defined(WIN_64)
+#if defined(WIN32) || defined(WIN64)
 #define NEWLINE                 "\n\r"
 #else
 #define NEWLINE                 "\n"
